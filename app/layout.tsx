@@ -3,9 +3,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "Transcriptly",
+  description: "Calculate your GPA with ease",
 }
 
 export default function RootLayout({
@@ -19,7 +18,5 @@ export default function RootLayout({
     </html>
   )
 }
-
-
 
 import './globals.css'

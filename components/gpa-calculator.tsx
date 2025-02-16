@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Plus, Upload, Download, AlertTriangle, TrendingUp } from "lucide-react"
 import TranscriptTable from "./transcript-table"
@@ -12,7 +12,6 @@ import Logo from "./logo"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
-import Cookies from "js-cookie"
 
 export type Subject = {
   name: string
@@ -29,73 +28,59 @@ export default function GpaCalculator() {
   const [transcript, setTranscript] = useState<Semester[]>([])
   const [showWarning, setShowWarning] = useState(false)
 
-  useEffect(() => {
-    const savedTranscript = Cookies.get("transcript")
-    if (savedTranscript) {
-      setTranscript(JSON.parse(savedTranscript))
-    }
+  const handleAddSemester = useCallback(() => {
+    setTranscript((prevTranscript) => [
+      ...prevTranscript,
+      {
+        name: `Semester ${prevTranscript.length + 1}`,
+        subjects: [],
+      },
+    ])
+  }, [])
 
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (transcript.length > 0) {
-        e.preventDefault()
-        e.returnValue = ""
-        setShowWarning(true)
-      }
-    }
+  const handleRemoveSemester = useCallback((semesterIndex: number) => {
+    setTranscript((prevTranscript) => prevTranscript.filter((_, index) => index !== semesterIndex))
+  }, [])
 
-    window.addEventListener("beforeunload", handleBeforeUnload)
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-    }
-  }, [transcript.length]) // Added transcript.length as a dependency
-
-  useEffect(() => {
-    if (transcript.length > 0) {
-      Cookies.set("transcript", JSON.stringify(transcript), { expires: 365 })
-    }
-  }, [transcript])
-
-  const handleAddSemester = () => {
-    const newSemester: Semester = {
-      name: `Semester ${transcript.length + 1}`,
-      subjects: [],
-    }
-    setTranscript([...transcript, newSemester])
-  }
-
-  const handleAddSubject = (semesterIndex: number) => {
-    const updatedTranscript = [...transcript]
-    updatedTranscript[semesterIndex].subjects.push({
-      name: "",
-      grade: "A",
-      credits: 3,
+  const handleAddSubject = useCallback((semesterIndex: number) => {
+    setTranscript((prevTranscript) => {
+      const newTranscript = [...prevTranscript]
+      newTranscript[semesterIndex].subjects = [
+        ...newTranscript[semesterIndex].subjects,
+        {
+          name: `Course ${newTranscript[semesterIndex].subjects.length + 1}`,
+          grade: "A",
+          credits: 3,
+        },
+      ]
+      return newTranscript
     })
-    setTranscript(updatedTranscript)
-  }
+  }, [])
 
-  const handleSubjectChange = (
-    semesterIndex: number,
-    subjectIndex: number,
-    field: keyof Subject,
-    value: string | number,
-  ) => {
-    const updatedTranscript = [...transcript]
-    updatedTranscript[semesterIndex].subjects[subjectIndex][field] = value as never
-    setTranscript(updatedTranscript)
-  }
+  const handleSubjectChange = useCallback(
+    (semesterIndex: number, subjectIndex: number, field: keyof Subject, value: string | number) => {
+      setTranscript((prevTranscript) => {
+        const newTranscript = [...prevTranscript]
+        newTranscript[semesterIndex].subjects[subjectIndex][field] = value as never
+        return newTranscript
+      })
+    },
+    [],
+  )
 
-  const handleRemoveSubject = (semesterIndex: number, subjectIndex: number) => {
-    const updatedTranscript = [...transcript]
-    updatedTranscript[semesterIndex].subjects.splice(subjectIndex, 1)
-    setTranscript(updatedTranscript)
-  }
+  const handleRemoveSubject = useCallback((semesterIndex: number, subjectIndex: number) => {
+    setTranscript((prevTranscript) => {
+      const newTranscript = [...prevTranscript]
+      newTranscript[semesterIndex].subjects.splice(subjectIndex, 1)
+      return newTranscript
+    })
+  }, [])
 
-  const handleFileUpload = (data: Semester[]) => {
+  const handleFileUpload = useCallback((data: Semester[]) => {
     setTranscript(data)
-  }
+  }, [])
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transcript))
     const downloadAnchorNode = document.createElement("a")
     downloadAnchorNode.setAttribute("href", dataStr)
@@ -103,7 +88,7 @@ export default function GpaCalculator() {
     document.body.appendChild(downloadAnchorNode)
     downloadAnchorNode.click()
     downloadAnchorNode.remove()
-  }
+  }, [transcript])
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -119,20 +104,6 @@ export default function GpaCalculator() {
         <p className="text-md text-blue-400 mb-6">
           Track your academic progress, import/export transcripts, and visualize per course GPA improvements
         </p>
-        <div className="bg-blue-50 p-6 rounded-lg mb-8">
-          <h2 className="text-2xl font-semibold text-blue-700 mb-4">Your Academic Journey, Simplified</h2>
-          <p className="text-blue-600 mb-4">
-            This  GPA Calculator is designed to help you keep track of your academic performance. 
-            Add semesters, input your courses and grades, and let it calculate your Semester GPA (SGPA) and
-            Cumulative GPA (CGPA) for you. With this tool, you can:
-          </p>
-          <ul className="list-disc list-inside text-blue-600 mb-4">
-            <li>Easily manage your academic transcript</li>
-            <li>Calculate SGPA and CGPA instantly</li>
-            <li>Analyze how improving specific courses could impact your overall GPA</li>
-            <li>Export your transcript for safekeeping and future use</li>
-          </ul>
-        </div>
         <div className="flex justify-center space-x-4">
           <Dialog>
             <DialogTrigger asChild>
@@ -154,7 +125,7 @@ export default function GpaCalculator() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link href="/gpa-improvement">
-                  <Button variant="outline">
+                  <Button variant="outline" >
                     <TrendingUp className="mr-2 h-4 w-4" /> Calculate GPA Improvement per Course
                   </Button>
                 </Link>
@@ -172,12 +143,13 @@ export default function GpaCalculator() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {transcript.map((semester, index) => (
             <TranscriptTable
-              key={semester.name}
+              key={`${semester.name}-${index}`}
               semester={semester}
               semesterIndex={index}
               onSubjectChange={handleSubjectChange}
               onAddSubject={handleAddSubject}
               onRemoveSubject={handleRemoveSubject}
+              onRemoveSemester={handleRemoveSemester}
               sgpa={calculateSGPA(semester)}
               cgpa={calculateCGPA(transcript.slice(0, index + 1))}
             />
@@ -217,4 +189,3 @@ export default function GpaCalculator() {
     </div>
   )
 }
-

@@ -1,5 +1,4 @@
-import { TableHeader } from "@/components/ui/table"
-import { Table, TableBody, TableCell, TableHead, TableRow } from "./ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
@@ -12,6 +11,7 @@ type TranscriptTableProps = {
   onSubjectChange: (semesterIndex: number, subjectIndex: number, field: keyof Subject, value: string | number) => void
   onAddSubject: (semesterIndex: number) => void
   onRemoveSubject: (semesterIndex: number, subjectIndex: number) => void
+  onRemoveSemester: (semesterIndex: number) => void
   sgpa: number
   cgpa: number
 }
@@ -37,13 +37,17 @@ export default function TranscriptTable({
   onSubjectChange,
   onAddSubject,
   onRemoveSubject,
+  onRemoveSemester,
   sgpa,
   cgpa,
 }: TranscriptTableProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="bg-blue-100 p-4">
+      <div className="bg-blue-100 p-4 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-blue-700">{semester.name}</h2>
+        <Button variant="ghost" size="sm" onClick={() => onRemoveSemester(semesterIndex)}>
+          <Trash2 className="h-4 w-4 mr-2" /> Remove Semester
+        </Button>
       </div>
       <Table>
         <TableHeader>
@@ -59,7 +63,6 @@ export default function TranscriptTable({
             <TableRow key={subjectIndex}>
               <TableCell>
                 <Input
-                  placeholder="Course Name"
                   value={subject.name}
                   onChange={(e) => onSubjectChange(semesterIndex, subjectIndex, "name", e.target.value)}
                 />
@@ -113,4 +116,3 @@ export default function TranscriptTable({
     </div>
   )
 }
-
