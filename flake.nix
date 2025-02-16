@@ -15,7 +15,7 @@
     ];
 
     shellHook = ''
-        echo "NextJS dev shell"
+        echo "NextJS dev shell for transcriptly"
         echo "Node version: $(node --version)"
         echo "Pnpm version: $(pnpm --version)"
     '';
