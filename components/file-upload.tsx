@@ -2,7 +2,6 @@
 
 import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import yaml from "js-yaml"
 import { Upload } from "lucide-react"
 import type { Semester } from "./gpa-calculator"
 
@@ -19,18 +18,11 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
       reader.onload = (event) => {
         const fileContent = event.target?.result as string
         try {
-          let data
-          if (file.name.endsWith(".json")) {
-            data = JSON.parse(fileContent)
-          } else if (file.name.endsWith(".yml") || file.name.endsWith(".yaml")) {
-            data = yaml.load(fileContent) as Semester[]
-          } else {
-            throw new Error("Unsupported file format")
-          }
+          const data = JSON.parse(fileContent)
           onFileUpload(data)
         } catch (error) {
           console.error("Error parsing file:", error)
-          alert("Error parsing file. Please make sure it's a valid JSON or YAML file.")
+          alert("Error parsing file. Please make sure it's a valid JSON file.")
         }
       }
 
@@ -43,7 +35,6 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
     onDrop,
     accept: {
       "application/json": [".json"],
-      "application/x-yaml": [".yml", ".yaml"],
     },
   })
 
@@ -57,9 +48,9 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
       <input {...getInputProps()} />
       <Upload className="mx-auto h-12 w-12 text-blue-500 mb-4" />
       {isDragActive ? (
-        <p className="text-blue-600">Drop the file here...</p>
+        <p className="text-blue-600">Drop the JSON file here...</p>
       ) : (
-        <p className="text-blue-600">Drag & drop a JSON or YAML file here, or click to select a file</p>
+        <p className="text-blue-600">Drag & drop a JSON file here, or click to select a file</p>
       )}
     </div>
   )

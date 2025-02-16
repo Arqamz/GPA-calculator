@@ -1,4 +1,5 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { TableHeader } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableRow } from "./ui/table"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
@@ -58,6 +59,7 @@ export default function TranscriptTable({
             <TableRow key={subjectIndex}>
               <TableCell>
                 <Input
+                  placeholder="Course Name"
                   value={subject.name}
                   onChange={(e) => onSubjectChange(semesterIndex, subjectIndex, "name", e.target.value)}
                 />
